@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
-DB_FILE = 'database.db'
+CORS(app)
+DB_FILE = 'backend/database.db'
 
 def create_tables():
     conn = sqlite3.connect(DB_FILE)

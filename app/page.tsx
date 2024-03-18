@@ -29,7 +29,6 @@ interface OfficeHour {
   location: number;
   time: string;
   duration: string;
-  location_text: string;
   day: string;
   capacity: number;
 }
@@ -42,15 +41,21 @@ export default function Home() {
 
   useEffect(() => {
     fetchCourses();
-    fetchSections();
+    // fetchSections();
     fetchTAs();
-    fetchOfficeHours();
+    // fetchOfficeHours();
   }, []);
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get<Course[]>('/api/courses');
-      setCourses(response.data);
+      const response = await axios.get<Course[]>('http://localhost:5000/api/courses');
+      const mappedCourses: Course[] = response.data.map((courseData: any) => ({
+        courseID: courseData[0],
+        department: courseData[1],
+        number: courseData[2],
+      }));
+      setCourses(mappedCourses);
+      // console.log(mappedCourses);
     } catch (error) {
       console.error('Error fetching courses:', error);
     }
@@ -58,8 +63,14 @@ export default function Home() {
 
   const fetchSections = async () => {
     try {
-      const response = await axios.get<CourseSection[]>('/api/course_sections');
-      setSections(response.data);
+      const response = await axios.get<CourseSection[]>('http://localhost:5000/api/course_sections');
+      const mappedCourseSections: CourseSection[] = response.data.map((courseData: any) => ({
+        courseID: courseData[0],
+        sectionID: courseData[1],
+        semester: courseData[2],
+        num_students: courseData[3],
+      }));
+      setSections(mappedCourseSections);
     } catch (error) {
       console.error('Error fetching course sections:', error);
     }
@@ -67,8 +78,13 @@ export default function Home() {
 
   const fetchTAs = async () => {
     try {
-      const response = await axios.get<TeachingAssistant[]>('/api/teaching_assistants');
-      setTAs(response.data);
+      const response = await axios.get<TeachingAssistant[]>('http://localhost:5000//api/teaching_assistants');
+      const mappedTAs: TeachingAssistant[] = response.data.map((courseData: any) => ({
+        email: courseData[0],
+        name: courseData[1],
+        year: courseData[2],
+      }));
+      setTAs(mappedTAs);
     } catch (error) {
       console.error('Error fetching teaching assistants:', error);
     }
@@ -76,8 +92,18 @@ export default function Home() {
 
   const fetchOfficeHours = async () => {
     try {
-      const response = await axios.get<OfficeHour[]>('/api/office_hours');
-      setOfficeHours(response.data);
+      const response = await axios.get<OfficeHour[]>('http://localhost:5000/api/office_hours');
+      const mappedOfficeHours: OfficeHour[] = response.data.map((courseData: any) => ({
+        courseID: courseData[0],
+        sectionID: courseData[1],
+        ta_email: courseData[2],
+        time: courseData[3],
+        duration: courseData[4],
+        location: courseData[5],
+        day: courseData[6], 
+        capacity: courseData[7],
+      }));
+      setOfficeHours(mappedOfficeHours);
     } catch (error) {
       console.error('Error fetching office hours:', error);
     }
@@ -89,28 +115,14 @@ export default function Home() {
         <h1>Courses</h1>
       <ul>
         {courses.map(course => (
-          <li key={course.courseID}>{course.department} - {course.number}</li>
-        ))}
-      </ul>
-
-      <h1>Course Sections</h1>
-      <ul>
-        {sections.map(section => (
-          <li key={`${section.courseID}-${section.sectionID}`}>{section.courseID} - {section.semester}</li>
+          <li key={course.courseID}>{course.courseID} - {course.department} - {course.number}</li>
         ))}
       </ul>
 
       <h1>Teaching Assistants</h1>
       <ul>
         {tas.map(ta => (
-          <li key={ta.email}>{ta.name} - {ta.email}</li>
-        ))}
-      </ul>
-
-      <h1>Office Hours</h1>
-      <ul>
-        {officeHours.map(officeHour => (
-          <li key={`${officeHour.courseID}-${officeHour.sectionID}-${officeHour.ta_email}-${officeHour.location}-${officeHour.time}`}>{officeHour.time} - {officeHour.day}</li>
+          <li key={ta.email}>{ta.email} - {ta.name} - {ta.year}</li>
         ))}
       </ul>
     </>
