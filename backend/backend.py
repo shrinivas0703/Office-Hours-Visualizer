@@ -3,7 +3,7 @@ from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={"*": {"origins": "http://localhost:3000"}})
 DB_FILE = 'backend/database.db'
 
 def create_tables():
@@ -99,6 +99,25 @@ def get_office_hours():
     office_hours = c.fetchall()
     conn.close()
     return jsonify(office_hours)
+
+@app.route('/api/courses', methods=["POST"])
+def post_new_courses():
+    try:
+        data = request.json
+        department = data.get('courseDepartment')
+        course_number = data.get('courseNumber')
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+
+        # Using parameterized query to insert the new course into the database
+        c.execute("INSERT INTO course (department, number) VALUES (?, ?)",
+                  (department, course_number))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"message": "Course added successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     create_tables()

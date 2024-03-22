@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Popup from "./popup";
 
 interface Course {
   courseID: number;
@@ -38,6 +39,31 @@ export default function Home() {
   const [sections, setSections] = useState<CourseSection[]>([]);
   const [tas, setTAs] = useState<TeachingAssistant[]>([]);
   const [officeHours, setOfficeHours] = useState<OfficeHour[]>([]);
+  // const handleAddCourse = (courseName: string) => {
+  //   // Logic to handle adding a course
+  //   console.log(`Course added: ${courseName}`);
+  // };
+  const handleAddCourseClick = async (courseDepartment: string, courseNumber: string) => {
+    try {
+      // Make an API call to your backend to add the course
+      const response = await axios.post('http://localhost:5000/api/courses', {
+        courseDepartment,
+        courseNumber,
+      });
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to add course');
+      }
+
+      fetchCourses();
+
+      // Call the onAddCourse callback with the course name
+      handleClosePopup();
+    } catch (error) {
+      console.error('Error adding course:', error);
+      // Handle error as needed
+    }
+  };
 
   useEffect(() => {
     fetchCourses();
@@ -109,10 +135,21 @@ export default function Home() {
     }
   };
 
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  const handleButtonClick = () => {
+    setIsPopupOpen(true);
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+  };
+
   return (
-    <>
-        <h1 className='text-center text-2xl pt-4'> CS 348 Project</h1>
-        <h1>Courses</h1>
+    <div className="flex flex-col items-center min-h-screen">
+    <h1 className="text-center text-2xl pt-4">CS 348 Project</h1>
+    <div className="text-center">
+      <h1>Courses</h1>
       <ul>
         {courses.map(course => (
           <li key={course.courseID}>{course.courseID} - {course.department} - {course.number}</li>
@@ -125,7 +162,14 @@ export default function Home() {
           <li key={ta.email}>{ta.email} - {ta.name} - {ta.year}</li>
         ))}
       </ul>
-    </>
+      <button onClick={handleButtonClick}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
+        Add an Office Hour
+      </button>
+
+      {isPopupOpen && <Popup onClose={handleClosePopup} onAddCourse={handleAddCourseClick} />}
+    </div>
+    </div>
   )
 }
 
