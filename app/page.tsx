@@ -2,18 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Popup from "./popup";
+import AddCoursePopup from "./addCoursePopup";
+import AddAssistantPopup from './addTAPopup';
+import AddOfficeHourPopup from './addOfficeHourPopup';
 
 interface Course {
   courseID: number;
   department: string;
   number: string;
-}
-
-interface CourseSection {
-  courseID: number;
-  sectionID: number;
-  semester: string;
+  professor: string;
   num_students: number;
 }
 
@@ -24,52 +21,28 @@ interface TeachingAssistant {
 }
 
 interface OfficeHour {
-  courseID: number;
-  sectionID: number;
-  ta_email: string;
-  location: number;
+  department: string;
+  course_number: string;
+  email: string;
   time: string;
-  duration: string;
+  location: string;
   day: string;
   capacity: number;
+  duration: number;
 }
 
 export default function Home() {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [sections, setSections] = useState<CourseSection[]>([]);
   const [tas, setTAs] = useState<TeachingAssistant[]>([]);
-  const [officeHours, setOfficeHours] = useState<OfficeHour[]>([]);
-  // const handleAddCourse = (courseName: string) => {
-  //   // Logic to handle adding a course
-  //   console.log(`Course added: ${courseName}`);
-  // };
-  const handleAddCourseClick = async (courseDepartment: string, courseNumber: string) => {
-    try {
-      // Make an API call to your backend to add the course
-      const response = await axios.post('http://localhost:5000/api/courses', {
-        courseDepartment,
-        courseNumber,
-      });
-      
-      if (response.status !== 200) {
-        throw new Error('Failed to add course');
-      }
-
-      fetchCourses();
-
-      // Call the onAddCourse callback with the course name
-      handleClosePopup();
-    } catch (error) {
-      console.error('Error adding course:', error);
-      // Handle error as needed
-    }
-  };
+  const [ohs, setOHs] = useState<OfficeHour[]>([]);
+  const [isAddCoursePopupOpen, setIsAddCoursePopupOpen] = useState(false);
+  const [isAddAssistantPopupOpen, setIsAddAssistantPopupOpen] = useState(false);
+  const [isAddOfficeHourPopupOpen, setIsAddOfficeHourPopupOpen] = useState(false);
 
   useEffect(() => {
     fetchCourses();
-    // fetchSections();
     fetchTAs();
-    // fetchOfficeHours();
+    fetchOHs();
   }, []);
 
   const fetchCourses = async () => {
@@ -79,32 +52,18 @@ export default function Home() {
         courseID: courseData[0],
         department: courseData[1],
         number: courseData[2],
+        professor: courseData[3],
+        num_students: courseData[4]
       }));
       setCourses(mappedCourses);
-      // console.log(mappedCourses);
     } catch (error) {
       console.error('Error fetching courses:', error);
     }
   };
 
-  const fetchSections = async () => {
-    try {
-      const response = await axios.get<CourseSection[]>('http://localhost:5000/api/course_sections');
-      const mappedCourseSections: CourseSection[] = response.data.map((courseData: any) => ({
-        courseID: courseData[0],
-        sectionID: courseData[1],
-        semester: courseData[2],
-        num_students: courseData[3],
-      }));
-      setSections(mappedCourseSections);
-    } catch (error) {
-      console.error('Error fetching course sections:', error);
-    }
-  };
-
   const fetchTAs = async () => {
     try {
-      const response = await axios.get<TeachingAssistant[]>('http://localhost:5000//api/teaching_assistants');
+      const response = await axios.get<TeachingAssistant[]>('http://localhost:5000/api/teaching_assistants');
       const mappedTAs: TeachingAssistant[] = response.data.map((courseData: any) => ({
         email: courseData[0],
         name: courseData[1],
@@ -116,60 +75,156 @@ export default function Home() {
     }
   };
 
-  const fetchOfficeHours = async () => {
+  const fetchOHs = async () => {
     try {
       const response = await axios.get<OfficeHour[]>('http://localhost:5000/api/office_hours');
-      const mappedOfficeHours: OfficeHour[] = response.data.map((courseData: any) => ({
-        courseID: courseData[0],
-        sectionID: courseData[1],
-        ta_email: courseData[2],
+      const mappedOHs: OfficeHour[] = response.data.map((courseData: any) => ({
+        department: courseData[0],
+        course_number: courseData[1],
+        email: courseData[2],
         time: courseData[3],
-        duration: courseData[4],
-        location: courseData[5],
-        day: courseData[6], 
-        capacity: courseData[7],
+        location: courseData[4],
+        day: courseData[5],
+        capacity: courseData[6],
+        duration: courseData[7],
       }));
-      setOfficeHours(mappedOfficeHours);
+      setOHs(mappedOHs);
     } catch (error) {
       console.error('Error fetching office hours:', error);
     }
   };
 
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const handleAddCourse = async (courseDepartment: string, courseNumber: string, professor: string, num_students: number) => {
+    try {
+      const response = await axios.post('http://localhost:5000/api/courses', {
+        courseDepartment,
+        courseNumber,
+        professor,
+        num_students
+      });
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to add course');
+      }
 
-  const handleButtonClick = () => {
-    setIsPopupOpen(true);
+      fetchCourses();
+      handleCloseAddCoursePopup();
+    } catch (error) {
+      console.error('Error adding course:', error);
+    }
   };
 
-  const handleClosePopup = () => {
-    setIsPopupOpen(false);
+  const handleAddAssistant = async (email: string, name: string, year: string) => {
+    try {
+      const response = await axios.post('http://localhost:5000/api/teaching_assistants', {
+        email,
+        name,
+        year
+      });
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to add teaching assistant');
+      }
+
+      fetchTAs();
+      handleCloseAddAssistantPopup();
+    } catch (error) {
+      console.error('Error adding teaching assistant:', error);
+    }
+  };
+
+  const handleAddOfficeHour = async (department: string, courseNumber: string, email: string, time: string, location: string, day: string, capacity: number, duration: number) => {
+    try {
+      const response = await axios.post('http://localhost:5000/api/office_hours', {
+        department,
+        courseNumber,
+        email,
+        time,
+        location,
+        day,
+        capacity,
+        duration
+      });
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to add office hour');
+      }
+
+      fetchOHs();
+      handleCloseAddOfficeHourPopup();
+    } catch (error) {
+      console.error('Error adding office hour:', error);
+    }
+  };
+
+  const handleAddCourseClick = () => {
+    setIsAddCoursePopupOpen(true);
+  };
+
+  const handleCloseAddCoursePopup = () => {
+    setIsAddCoursePopupOpen(false);
+  };
+
+  const handleAddAssistantClick = () => {
+    setIsAddAssistantPopupOpen(true);
+  };
+
+  const handleCloseAddAssistantPopup = () => {
+    setIsAddAssistantPopupOpen(false);
+  };
+
+  const handleAddOfficeHourClick = () => {
+    setIsAddOfficeHourPopupOpen(true);
+  };
+
+  const handleCloseAddOfficeHourPopup = () => {
+    setIsAddOfficeHourPopupOpen(false);
   };
 
   return (
     <div className="flex flex-col items-center min-h-screen">
-    <h1 className="text-center text-2xl pt-4">CS 348 Project</h1>
-    <div className="text-center">
-      <h1>Courses</h1>
-      <ul>
-        {courses.map(course => (
-          <li key={course.courseID}>{course.courseID} - {course.department} - {course.number}</li>
-        ))}
-      </ul>
+      <h1 className="text-center text-2xl pt-4">CS 348 Project</h1>
+      <div className="text-center">
+        <h1>Courses</h1>
+        <ul>
+          {courses.map(course => (
+            <li key={course.courseID}>{course.department} - {course.number} - {course.professor} - {course.num_students} </li>
+          ))}
+        </ul>
+        <h1>Teaching Assistants</h1>
+        <ul>
+          {tas.map(ta => (
+            <li key={ta.email}>{ta.name} - {ta.email} - {ta.year}</li>
+          ))}
+        </ul>
+        <h1>Office Hours</h1>
+        <ul>
+          {ohs.map(oh => (
+            <li key={Math.random()}>{oh.department} - {oh.course_number} - {oh.email} - {oh.time} - {oh.location} - {oh.day} - {oh.capacity} - {oh.duration}</li>
+          ))}
+        </ul>
+        <button onClick={handleAddCourseClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
+          Add a new course
+        </button>
+        <button onClick={handleAddAssistantClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
+          Add a new teaching assistant
+        </button>
+        <button onClick={handleAddOfficeHourClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
+          Add a new office hour
+        </button>
 
-      <h1>Teaching Assistants</h1>
-      <ul>
-        {tas.map(ta => (
-          <li key={ta.email}>{ta.email} - {ta.name} - {ta.year}</li>
-        ))}
-      </ul>
-      <button onClick={handleButtonClick}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
-        Add an Office Hour
-      </button>
+        {isAddCoursePopupOpen && 
+          <AddCoursePopup onClose={handleCloseAddCoursePopup} onAddCourse={handleAddCourse} course_list={courses} />
+        }
 
-      {isPopupOpen && <Popup onClose={handleClosePopup} onAddCourse={handleAddCourseClick} />}
+        {isAddAssistantPopupOpen && 
+          <AddAssistantPopup onClose={handleCloseAddAssistantPopup} onAddAssistant={handleAddAssistant} taList={tas} />
+        }
+
+        {isAddOfficeHourPopupOpen && 
+          <AddOfficeHourPopup onClose={handleCloseAddOfficeHourPopup} onAddOfficeHour={handleAddOfficeHour}/>
+        }
+      </div>
     </div>
-    </div>
-  )
-}
-
+  );
+};
