@@ -203,16 +203,17 @@ export default function Home() {
             <li key={Math.random()}>{oh.department} - {oh.course_number} - {oh.email} - {oh.time} - {oh.location} - {oh.day} - {oh.capacity} - {oh.duration}</li>
           ))}
         </ul>
-        <button onClick={handleAddCourseClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
-          Add a new course
-        </button>
-        <button onClick={handleAddAssistantClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
-          Add a new teaching assistant
-        </button>
-        <button onClick={handleAddOfficeHourClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
-          Add a new office hour
-        </button>
-
+        <div className='space-x-2'>
+          <button onClick={handleAddCourseClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
+            Add a new course
+          </button>
+          <button onClick={handleAddAssistantClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
+            Add a new teaching assistant
+          </button>
+          <button onClick={handleAddOfficeHourClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
+            Add a new office hour
+          </button>
+        </div>
         {isAddCoursePopupOpen && 
           <AddCoursePopup onClose={handleCloseAddCoursePopup} onAddCourse={handleAddCourse} course_list={courses} />
         }
