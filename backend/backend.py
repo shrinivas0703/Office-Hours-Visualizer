@@ -149,6 +149,31 @@ def post_new_OH():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/courses/', methods=["PUT"])
+def edit_course():
+    try:
+        data = request.json
+        print(data)
+        course_id = data.get('courseID')
+        department = data.get('department')
+        course_number = data.get('number')
+        professor = data.get('professor')
+        num_students = data.get('num_students')
+        
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+
+        # Using parameterized query to update the course information in the database
+        c.execute("UPDATE course SET department=?, number=?, professor=?, num_students=? WHERE courseID=?",
+                  (department, course_number, professor, num_students, course_id))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"message": "Course updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     create_tables()
     #test_insertions()

@@ -36,7 +36,7 @@ const AddOfficeHourPopup: React.FC<PopupProps> = ({ onClose, onAddOfficeHour}) =
 
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded shadow-lg relative">
+      <div className="bg-black p-6 rounded shadow-lg relative">
         <button
           onClick={onClose}
           className="absolute top-1 right-2 text-black hover:text-gray-300"
@@ -79,13 +79,12 @@ const AddOfficeHourPopup: React.FC<PopupProps> = ({ onClose, onAddOfficeHour}) =
           placeholder="Enter Location"
           className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black"
         />
-        <div className='justify-left text-left py-2 text-black'> Day: </div>
         <select
             value={day}
             onChange={(e) => setDay(e.target.value)}
             className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black"
-            >
-            <option value="" disabled>Select Day</option>
+        >
+            <option value="" disabled className="text-gray-500">Select Day</option>
             <option value="Monday">Monday</option>
             <option value="Tuesday">Tuesday</option>
             <option value="Wednesday">Wednesday</option>
@@ -93,8 +92,9 @@ const AddOfficeHourPopup: React.FC<PopupProps> = ({ onClose, onAddOfficeHour}) =
             <option value="Friday">Friday</option>
             <option value="Saturday">Saturday</option>
             <option value="Sunday">Sunday</option>
-            </select>
-        <div className='justify-left text-left py-2 text-black'> Capacity: </div>
+        </select>
+
+        <div className='justify-left text-left py-2 text-white'> Capacity: </div>
         <input
           type="number"
           value={capacity}
@@ -102,7 +102,7 @@ const AddOfficeHourPopup: React.FC<PopupProps> = ({ onClose, onAddOfficeHour}) =
           placeholder="Enter Capacity"
           className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black"
         />
-        <div className='justify-left text-left py-2 text-black'> Duration (mins): </div>
+        <div className='justify-left text-left py-2 text-white'> Duration (mins): </div>
         <input
           type="number"
           value={duration}

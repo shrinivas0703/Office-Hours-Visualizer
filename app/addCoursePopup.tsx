@@ -73,7 +73,7 @@ const addCoursePopup: React.FC<PopupProps> = ({ onClose, onAddCourse, course_lis
               placeholder="Enter professor name"
               className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black"
             />
-            <div className='justify-left text-left py-2'> Capacity: </div>
+            <div className='justify-left text-left py-2'> Number of Students: </div>
             <input
               type="number"
               value={num_students}
@@ -90,7 +90,7 @@ const addCoursePopup: React.FC<PopupProps> = ({ onClose, onAddCourse, course_lis
           </div>
         ) : (
           <div>
-            <h2 className="text-2xl mb-4">Add a new course</h2>
+            <h2 className="text-2xl mb-4 items-center">Add a new course</h2>
             <p>Does your course already exist?</p>
             <div>
                   <ul>

@@ -42,7 +42,7 @@ const AddTAPopup: React.FC<PopupProps> = ({ onClose, onAddAssistant, taList }) =
   };
 
   return (
-    <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center">
+    <div className="fixed top-0 left-0 w-full h-full flex items-center bg-gray-800 bg-opacity-50 justify-center">
       <div className="bg-black p-6 rounded shadow-lg relative">
         <button
           onClick={onClose}
@@ -74,6 +74,18 @@ const AddTAPopup: React.FC<PopupProps> = ({ onClose, onAddAssistant, taList }) =
               placeholder="Enter year"
               className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black"
             />
+            <select
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black"
+            >
+                <option value="" disabled className="text-gray-500">Select Year</option>
+                <option value="Freshman">Freshman</option>
+                <option value="Sophomore">Sophomore</option>
+                <option value="Junior">Junior</option>
+                <option value="Senior">Senior</option>
+                <option value="Graduate Student">Graduate Student</option>
+            </select>
             <button
               onClick={handleAddAssistant}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mr-2"

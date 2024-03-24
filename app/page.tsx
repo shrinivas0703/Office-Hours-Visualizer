@@ -1,10 +1,10 @@
-'use client'
-
+"use client"
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import AddCoursePopup from "./addCoursePopup";
 import AddAssistantPopup from './addTAPopup';
 import AddOfficeHourPopup from './addOfficeHourPopup';
+import EditCoursePopup from "./editCoursePopup";
 
 interface Course {
   courseID: number;
@@ -38,6 +38,9 @@ export default function Home() {
   const [isAddCoursePopupOpen, setIsAddCoursePopupOpen] = useState(false);
   const [isAddAssistantPopupOpen, setIsAddAssistantPopupOpen] = useState(false);
   const [isAddOfficeHourPopupOpen, setIsAddOfficeHourPopupOpen] = useState(false);
+
+  const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
+  const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
 
   useEffect(() => {
     fetchCourses();
@@ -114,6 +117,27 @@ export default function Home() {
     }
   };
 
+  const handleEditClick = (course: Course) => {
+    setCurrentCourse(course);
+    setIsEditPopupOpen(true);
+  };
+
+  const handleEditCourse = async (editedCourse: Course) => {
+    try {
+      console.log(editedCourse);
+      const response = await axios.put(`http://localhost:5000/api/courses`, editedCourse);
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to edit course');
+      }
+
+      fetchCourses(); // Refresh the course list
+      setIsEditPopupOpen(false); // Close the edit popup
+    } catch (error) {
+      console.error('Error editing course:', error);
+    }
+  };
+
   const handleAddAssistant = async (email: string, name: string, year: string) => {
     try {
       const response = await axios.post('http://localhost:5000/api/teaching_assistants', {
@@ -182,50 +206,113 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen">
+    <div className="items-center min-h-screen ml-10">
       <h1 className="text-center text-2xl pt-4">CS 348 Project</h1>
-      <div className="text-center">
-        <h1>Courses</h1>
-        <ul>
-          {courses.map(course => (
-            <li key={course.courseID}>{course.department} - {course.number} - {course.professor} - {course.num_students} </li>
-          ))}
-        </ul>
-        <h1>Teaching Assistants</h1>
-        <ul>
-          {tas.map(ta => (
-            <li key={ta.email}>{ta.name} - {ta.email} - {ta.year}</li>
-          ))}
-        </ul>
-        <h1>Office Hours</h1>
-        <ul>
-          {ohs.map(oh => (
-            <li key={Math.random()}>{oh.department} - {oh.course_number} - {oh.email} - {oh.time} - {oh.location} - {oh.day} - {oh.capacity} - {oh.duration}</li>
-          ))}
-        </ul>
-        <div className='space-x-2'>
-          <button onClick={handleAddCourseClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
-            Add a new course
-          </button>
-          <button onClick={handleAddAssistantClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
-            Add a new teaching assistant
-          </button>
-          <button onClick={handleAddOfficeHourClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mt-4">
-            Add a new office hour
-          </button>
-        </div>
+      <div className="text-left justify-left">
+        <h1 className='font-bold'>Courses</h1>
+        <table className="table-auto mb-4">
+          <thead>
+            <tr>
+              <th className="pr-2">Department</th>
+              <th className="px-4">Number</th>
+              <th className="px-4">Professor</th>
+              <th className="px-4">Number of Students</th>
+            </tr>
+          </thead>
+          <tbody>
+            {courses.map(course => (
+              <tr key={course.courseID} className="mb-5">
+                <td className="pr-2">{course.department}</td>
+                <td className="px-4">{course.number}</td>
+                <td className="px-4">{course.professor}</td>
+                <td className="px-4">{course.num_students}</td>
+                <td className='px-4'>
+                  <button onClick={() => handleEditClick(course)} className="bg-green-500 hover:bg-green-700 text-white font-bold px-4 rounded-full">
+                    Edit
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button onClick={handleAddCourseClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mb-8">
+          Add a new course
+        </button>
+        <h1 className='font-bold'>Teaching Assistants</h1>
+        <table className="table-auto mb-4">
+          <thead>
+            <tr>
+              <th className="pr-2">Name</th>
+              <th className="px-4">Email</th>
+              <th className="px-4">Year</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tas.map(ta => (
+              <tr key={ta.email}>
+                <td className="pr-2">{ta.name}</td>
+                <td className="px-4">{ta.email}</td>
+                <td className="px-4">{ta.year}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button onClick={handleAddAssistantClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mb-8">
+          Add a new teaching assistant
+        </button>
+        <h1 className='font-bold'>Office Hours</h1>
+        <table className="table-auto mb-4">
+          <thead>
+            <tr>
+              <th className="pr-2">Department</th>
+              <th className="px-4">Course Number</th>
+              <th className="px-4">Email</th>
+              <th className="px-4">Time</th>
+              <th className="px-4">Location</th>
+              <th className="px-4">Day</th>
+              <th className="px-4">Capacity</th>
+              <th className="px-4">Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ohs.map(oh => (
+              <tr key={Math.random()}>
+                <td className="pr-2">{oh.department}</td>
+                <td className="px-4">{oh.course_number}</td>
+                <td className="px-4">{oh.email}</td>
+                <td className="px-4">{oh.time}</td>
+                <td className="px-4">{oh.location}</td>
+                <td className="px-4">{oh.day}</td>
+                <td className="px-4">{oh.capacity}</td>
+                <td className="px-4">{oh.duration}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button onClick={handleAddOfficeHourClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mb-8">
+          Add a new office hour
+        </button>
         {isAddCoursePopupOpen && 
           <AddCoursePopup onClose={handleCloseAddCoursePopup} onAddCourse={handleAddCourse} course_list={courses} />
         }
-
+  
         {isAddAssistantPopupOpen && 
           <AddAssistantPopup onClose={handleCloseAddAssistantPopup} onAddAssistant={handleAddAssistant} taList={tas} />
         }
-
+  
         {isAddOfficeHourPopupOpen && 
           <AddOfficeHourPopup onClose={handleCloseAddOfficeHourPopup} onAddOfficeHour={handleAddOfficeHour}/>
+        }
+        {isEditPopupOpen && currentCourse && 
+        <EditCoursePopup 
+          onClose={() => setIsEditPopupOpen(false)} 
+          onEditCourse={handleEditCourse} 
+          course={currentCourse} 
+        />
         }
       </div>
     </div>
   );
+  
 };
+
