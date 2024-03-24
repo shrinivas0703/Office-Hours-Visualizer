@@ -67,13 +67,6 @@ const AddTAPopup: React.FC<PopupProps> = ({ onClose, onAddAssistant, taList }) =
               placeholder="Enter name"
               className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black"
             />
-            <input
-              type="text"
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              placeholder="Enter year"
-              className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black"
-            />
             <select
                 value={year}
                 onChange={(e) => setYear(e.target.value)}
