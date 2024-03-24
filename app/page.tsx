@@ -6,6 +6,11 @@ import AddAssistantPopup from './addTAPopup';
 import AddOfficeHourPopup from './addOfficeHourPopup';
 import EditCoursePopup from "./editCoursePopup";
 
+interface DeleteCoursePopupProps {
+  onClose: () => void;
+  onDeleteCourse: () => void;
+}
+
 interface Course {
   courseID: number;
   department: string;
@@ -38,6 +43,7 @@ export default function Home() {
   const [isAddCoursePopupOpen, setIsAddCoursePopupOpen] = useState(false);
   const [isAddAssistantPopupOpen, setIsAddAssistantPopupOpen] = useState(false);
   const [isAddOfficeHourPopupOpen, setIsAddOfficeHourPopupOpen] = useState(false);
+  const [isDeleteCoursePopupOpen, setIsDeleteCoursePopupOpen] = useState(false);
 
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
@@ -47,6 +53,34 @@ export default function Home() {
     fetchTAs();
     fetchOHs();
   }, []);
+
+
+  const DeleteCoursePopup: React.FC<DeleteCoursePopupProps> = ({ onClose, onDeleteCourse }) => {
+
+    const handleDeleteCourse = () => {
+      onDeleteCourse();
+      onClose();
+    };
+
+    return (
+      <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div className="bg-black p-6 rounded shadow-lg relative">
+          <button onClick={onClose} className="absolute top-1 right-2 text-white hover:text-gray-300">
+            x
+          </button>
+          <div>
+            <h2 className="text-2xl mb-4">Delete Course</h2>
+            <p>Are you sure you want to delete this course?</p>
+            <div className="flex justify-end mt-4">
+              <button onClick={handleDeleteCourse} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const fetchCourses = async () => {
     try {
@@ -122,9 +156,14 @@ export default function Home() {
     setIsEditPopupOpen(true);
   };
 
+  const handleDeleteClick = (course: Course) => {
+    setCurrentCourse(course);
+    setIsDeleteCoursePopupOpen(true);
+  }
+
   const handleEditCourse = async (editedCourse: Course) => {
     try {
-      console.log(editedCourse);
+      // console.log(editedCourse);
       const response = await axios.put(`http://localhost:5000/api/courses`, editedCourse);
       
       if (response.status !== 200) {
@@ -132,6 +171,7 @@ export default function Home() {
       }
 
       fetchCourses(); // Refresh the course list
+      fetchOHs();
       setIsEditPopupOpen(false); // Close the edit popup
     } catch (error) {
       console.error('Error editing course:', error);
@@ -181,6 +221,22 @@ export default function Home() {
     }
   };
 
+  const handleDeleteCourse = async (deletedCourse: Course) => {
+    try {
+      console.log(deletedCourse);
+      const response = await axios.delete(`http://localhost:5000/api/courses`, { data: deletedCourse });
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to delete course');
+      }
+
+      fetchCourses(); // Refresh the course list
+      setIsDeleteCoursePopupOpen(false); // Close the edit popup
+    } catch (error) {
+      console.error('Error deleting course:', error);
+    }
+  }
+
   const handleAddCourseClick = () => {
     setIsAddCoursePopupOpen(true);
   };
@@ -203,6 +259,10 @@ export default function Home() {
 
   const handleCloseAddOfficeHourPopup = () => {
     setIsAddOfficeHourPopupOpen(false);
+  };
+
+  const handleCloseDeleteCoursePopup = () => {
+    setIsDeleteCoursePopupOpen(false);
   };
 
   return (
@@ -229,6 +289,11 @@ export default function Home() {
                 <td className='px-4'>
                   <button onClick={() => handleEditClick(course)} className="bg-green-500 hover:bg-green-700 text-white font-bold px-4 rounded-full">
                     Edit
+                  </button>
+                </td>
+                <td className='px-4'>
+                  <button onClick={() => handleDeleteClick(course)} className="bg-red-500 hover:bg-red-700 text-white font-bold px-4 rounded-full">
+                    Delete
                   </button>
                 </td>
               </tr>
@@ -271,7 +336,7 @@ export default function Home() {
               <th className="px-4">Location</th>
               <th className="px-4">Day</th>
               <th className="px-4">Capacity</th>
-              <th className="px-4">Duration</th>
+              <th className="px-4">Duration (mins)</th>
             </tr>
           </thead>
           <tbody>
@@ -309,6 +374,9 @@ export default function Home() {
           onEditCourse={handleEditCourse} 
           course={currentCourse} 
         />
+        }
+        {isDeleteCoursePopupOpen && currentCourse && 
+          <DeleteCoursePopup onClose={handleCloseDeleteCoursePopup} onDeleteCourse={() => handleDeleteCourse(currentCourse)} />
         }
       </div>
     </div>

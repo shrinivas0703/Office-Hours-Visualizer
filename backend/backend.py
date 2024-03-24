@@ -3,7 +3,7 @@ from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
-CORS(app, resources={"*": {"origins": "http://localhost:3000"}})
+CORS(app, resources={"*": {"origins": "*"}})
 DB_FILE = 'backend/database.db'
 
 def create_tables():
@@ -153,7 +153,6 @@ def post_new_OH():
 def edit_course():
     try:
         data = request.json
-        print(data)
         course_id = data.get('courseID')
         department = data.get('department')
         course_number = data.get('number')
@@ -173,6 +172,20 @@ def edit_course():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/courses/', methods=["DELETE"])
+def delete_course():
+    try:
+        data = request.json
+        course_id = data.get('courseID')
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        c.execute("DELETE FROM course WHERE courseID=?",
+                  (course_id, ))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Course deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     create_tables()

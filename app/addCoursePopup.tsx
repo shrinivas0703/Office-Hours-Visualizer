@@ -95,7 +95,7 @@ const addCoursePopup: React.FC<PopupProps> = ({ onClose, onAddCourse, course_lis
             <div>
                   <ul>
                   {course_list.map(course => (
-                    <li key={course.courseID}>{course.courseID} - {course.department} - {course.number}</li>
+                    <li key={course.courseID}>{course.department} - {course.number} - {course.professor} - {course.num_students}</li>
                   ))}
                   </ul>
               <div className="flex flex-row justify-center">
