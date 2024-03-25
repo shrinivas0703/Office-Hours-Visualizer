@@ -231,6 +231,7 @@ export default function Home() {
       }
 
       fetchCourses(); // Refresh the course list
+      fetchOHs();
       setIsDeleteCoursePopupOpen(false); // Close the edit popup
     } catch (error) {
       console.error('Error deleting course:', error);
