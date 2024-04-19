@@ -5,10 +5,16 @@ import AddCoursePopup from "./addCoursePopup";
 import AddAssistantPopup from './addTAPopup';
 import AddOfficeHourPopup from './addOfficeHourPopup';
 import EditCoursePopup from "./editCoursePopup";
+import EditOfficeHourPopup from './editOfficeHourPopup';
 
 interface DeleteCoursePopupProps {
   onClose: () => void;
   onDeleteCourse: () => void;
+}
+
+interface DeleteOHPopupProps {
+  onClose: () => void;
+  onDeleteOH: () => void;
 }
 
 interface Course {
@@ -26,8 +32,10 @@ interface TeachingAssistant {
 }
 
 interface OfficeHour {
+  id: number;
   department: string;
   course_number: string;
+  name:string;
   email: string;
   time: string;
   location: string;
@@ -44,9 +52,13 @@ export default function Home() {
   const [isAddAssistantPopupOpen, setIsAddAssistantPopupOpen] = useState(false);
   const [isAddOfficeHourPopupOpen, setIsAddOfficeHourPopupOpen] = useState(false);
   const [isDeleteCoursePopupOpen, setIsDeleteCoursePopupOpen] = useState(false);
+  const [isDeleteOHPopupOpen, setIsDeleteOHPopupOpen] = useState(false);
 
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
+
+  const [currentOH, setCurrentOH] = useState<OfficeHour | null>(null);
+  const [isEditOHPopupOpen, setIsEditOHPopupOpen] = useState(false);
 
   useEffect(() => {
     fetchCourses();
@@ -73,6 +85,33 @@ export default function Home() {
             <p>Are you sure you want to delete this course?</p>
             <div className="flex justify-end mt-4">
               <button onClick={handleDeleteCourse} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const DeleteOHPopup: React.FC<DeleteOHPopupProps> = ({ onClose, onDeleteOH }) => {
+
+    const handleDeleteOH = () => {
+      onDeleteOH();
+      onClose();
+    };
+
+    return (
+      <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div className="bg-black p-6 rounded shadow-lg relative">
+          <button onClick={onClose} className="absolute top-1 right-2 text-white hover:text-gray-300">
+            x
+          </button>
+          <div>
+            <h2 className="text-2xl mb-4">Delete Office Hour</h2>
+            <p>Are you sure you want to delete this office hour?</p>
+            <div className="flex justify-end mt-4">
+              <button onClick={handleDeleteOH} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full">
                 Delete
               </button>
             </div>
@@ -116,14 +155,16 @@ export default function Home() {
     try {
       const response = await axios.get<OfficeHour[]>('http://localhost:5000/api/office_hours');
       const mappedOHs: OfficeHour[] = response.data.map((courseData: any) => ({
-        department: courseData[0],
-        course_number: courseData[1],
-        email: courseData[2],
-        time: courseData[3],
-        location: courseData[4],
-        day: courseData[5],
-        capacity: courseData[6],
-        duration: courseData[7],
+        id: courseData[0],
+        department: courseData[1],
+        course_number: courseData[2],
+        name: courseData[3],
+        email: courseData[4],
+        time: courseData[5],
+        location: courseData[6],
+        day: courseData[7],
+        capacity: courseData[8],
+        duration: courseData[9],
       }));
       setOHs(mappedOHs);
     } catch (error) {
@@ -156,15 +197,41 @@ export default function Home() {
     setIsEditPopupOpen(true);
   };
 
+  const handleEditOHClick = (OH: OfficeHour) => {
+    setCurrentOH(OH);
+    setIsEditOHPopupOpen(true);
+  };
+
   const handleDeleteClick = (course: Course) => {
     setCurrentCourse(course);
     setIsDeleteCoursePopupOpen(true);
   }
 
+  const handleDeleteOHClick = (oh: OfficeHour) => {
+    setCurrentOH(oh);
+    setIsDeleteOHPopupOpen(true);
+  }
+
   const handleEditCourse = async (editedCourse: Course) => {
     try {
       // console.log(editedCourse);
-      const response = await axios.put(`http://localhost:5000/api/courses`, editedCourse);
+      const response = await axios.put(`http://localhost:5000/api/courses/office_hours`, editedCourse);
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to edit Office Hours');
+      }
+
+      fetchOHs();
+      setIsEditOHPopupOpen(false); // Close the edit popup
+    } catch (error) {
+      console.error('Error editing Office Hour:', error);
+    }
+  };
+
+  const handleEditOH = async (editedOH: OfficeHour) => {
+    try {
+      // console.log(editedCourse);
+      const response = await axios.put(`http://localhost:5000/api/office_hours`, editedOH);
       
       if (response.status !== 200) {
         throw new Error('Failed to edit course');
@@ -172,9 +239,9 @@ export default function Home() {
 
       fetchCourses(); // Refresh the course list
       fetchOHs();
-      setIsEditPopupOpen(false); // Close the edit popup
+      setIsEditOHPopupOpen(false); // Close the edit popup
     } catch (error) {
-      console.error('Error editing course:', error);
+      console.error('Error editing Office Hour:', error);
     }
   };
 
@@ -238,6 +305,23 @@ export default function Home() {
     }
   }
 
+  const handleDeleteOH = async (deletedOH: OfficeHour) => {
+    try {
+      const response = await axios.delete(`http://localhost:5000/api/office_hours`, { data: deletedOH });
+      
+      if (response.status !== 200) {
+        throw new Error('Failed to delete office hour');
+      }
+
+      // fetchCourses(); // Refresh the course list
+      fetchOHs();
+      setIsDeleteOHPopupOpen(false); // Close the delete popup
+    } catch (error) {
+      console.error('Error deleting office hour:', error);
+    }
+  }
+
+
   const handleAddCourseClick = () => {
     setIsAddCoursePopupOpen(true);
   };
@@ -264,6 +348,9 @@ export default function Home() {
 
   const handleCloseDeleteCoursePopup = () => {
     setIsDeleteCoursePopupOpen(false);
+  };
+  const handleCloseDeleteOHPopup = () => {
+    setIsDeleteOHPopupOpen(false);
   };
 
   return (
@@ -332,6 +419,7 @@ export default function Home() {
             <tr>
               <th className="pr-2">Department</th>
               <th className="px-4">Course Number</th>
+              <th className="px-4">Name</th>
               <th className="px-4">Email</th>
               <th className="px-4">Time</th>
               <th className="px-4">Location</th>
@@ -342,15 +430,26 @@ export default function Home() {
           </thead>
           <tbody>
             {ohs.map(oh => (
-              <tr key={Math.random()}>
+              <tr key={oh.id}>
                 <td className="pr-2">{oh.department}</td>
                 <td className="px-4">{oh.course_number}</td>
+                <td className="px-4">{oh.name}</td>
                 <td className="px-4">{oh.email}</td>
                 <td className="px-4">{oh.time}</td>
                 <td className="px-4">{oh.location}</td>
                 <td className="px-4">{oh.day}</td>
                 <td className="px-4">{oh.capacity}</td>
                 <td className="px-4">{oh.duration}</td>
+                <td className='px-4'>
+                  <button onClick={() => handleEditOHClick(oh)} className="bg-green-500 hover:bg-green-700 text-white font-bold px-4 rounded-full">
+                    Edit
+                  </button>
+                </td>
+                <td className='px-4'>
+                  <button onClick={() => handleDeleteOHClick(oh)} className="bg-red-500 hover:bg-red-700 text-white font-bold px-4 rounded-full">
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -378,6 +477,16 @@ export default function Home() {
         }
         {isDeleteCoursePopupOpen && currentCourse && 
           <DeleteCoursePopup onClose={handleCloseDeleteCoursePopup} onDeleteCourse={() => handleDeleteCourse(currentCourse)} />
+        }
+        {isEditOHPopupOpen && currentOH && 
+          <EditOfficeHourPopup 
+          onClose={() => setIsEditOHPopupOpen(false)} 
+          onEditOH={handleEditOH} 
+          officeHour={currentOH} 
+          />
+        }
+        {isDeleteOHPopupOpen && currentOH && 
+          <DeleteOHPopup onClose={handleCloseDeleteOHPopup} onDeleteOH={() => handleDeleteOH(currentOH)} />
         }
       </div>
     </div>

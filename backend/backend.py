@@ -28,6 +28,7 @@ def create_tables():
     
     # create the office hour table
     c.execute(''' CREATE TABLE IF NOT EXISTS office_hour (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     courseID INTEGER,
                     ta_email TEXT,
                     time TIME,
@@ -35,7 +36,6 @@ def create_tables():
                     location TEXT,
                     day TEXT,
                     capacity INTEGER,
-                    PRIMARY KEY (courseID, ta_email, location, time),
                     FOREIGN KEY (courseID) REFERENCES course (courseID),
                     FOREIGN KEY (ta_email) REFERENCES teaching_assistant (email)
               )''')
@@ -76,7 +76,7 @@ def get_teaching_assistants():
 def get_office_hours():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute('''SELECT C.department, C.number, T.email, O.time, O.location, O.day, O.capacity, O.duration 
+    c.execute('''SELECT O.id, C.department, C.number, T.name, T.email, O.time, O.location, O.day, O.capacity, O.duration 
               FROM office_hour O NATURAL JOIN course C JOIN teaching_assistant T ON t.email = O.ta_email''')
     office_hours = c.fetchall()
     conn.close()
@@ -171,6 +171,35 @@ def edit_course():
         return jsonify({"message": "Course updated successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/office_hours/', methods=["PUT"])
+def edit_OH():
+    try:
+        data = request.json
+        id = data.get("id")
+        department = data.get('department')
+        course_number = data.get('course_number')
+        email = data.get('email')
+        time = data.get('time')
+        location = data.get('location')
+        day =  data.get('day')
+        capacity = data.get('capacity')
+        duration = data.get('duration')
+        
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+
+        # Using parameterized query to update the course information in the database
+        c.execute('''UPDATE office_hour SET courseID = (SELECT min(courseID) FROM course WHERE department = ? AND number = ?),
+                 ta_email = ?, time = ?, duration = ?, location = ?, day = ?, capacity = ?
+                  WHERE id = ?''',
+                  (department, course_number, email, time, duration, location, day, capacity, id))
+        conn.commit()
+        conn.close()
+
+        return jsonify({"message": "Office Hour updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/courses/', methods=["DELETE"])
 def delete_course():
@@ -184,6 +213,22 @@ def delete_course():
         conn.commit()
         conn.close()
         return jsonify({"message": "Course deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/office_hours/', methods=["DELETE"])
+def delete_office_hour():
+    try:
+        data = request.json
+        print(data)
+        id = data.get('id')
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        c.execute("DELETE FROM office_hour WHERE id=?",
+                  (id, ))
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Office Hour deleted successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
