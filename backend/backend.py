@@ -96,8 +96,8 @@ def get_office_hours():
     else:
         where_clause = ""
 
-    print(where_clause)
-    print(args)
+    # print(where_clause)
+    # print(args)
     # c.execute('''SELECT O.id, C.department, C.number, T.name, T.email, O.time, O.location, O.day, O.capacity, O.duration 
     #           FROM office_hour O NATURAL JOIN course C JOIN teaching_assistant T ON t.email = O.ta_email''')
 
