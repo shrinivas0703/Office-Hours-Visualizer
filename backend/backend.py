@@ -56,7 +56,9 @@ def test_insertions():
 
 @app.route('/api/courses', methods=['GET'])
 def get_courses():
+    # qs = request.args
     conn = sqlite3.connect(DB_FILE)
+
     c = conn.cursor()
     c.execute('SELECT * FROM course')
     courses = c.fetchall()
@@ -76,8 +78,36 @@ def get_teaching_assistants():
 def get_office_hours():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute('''SELECT O.id, C.department, C.number, T.name, T.email, O.time, O.location, O.day, O.capacity, O.duration 
-              FROM office_hour O NATURAL JOIN course C JOIN teaching_assistant T ON t.email = O.ta_email''')
+    
+    where_clause = "WHERE"
+    args = ()
+    for q, v in request.args.items():
+        if (q == "department" or q == "course_number") and len(v) != 0:
+            if q == 'course_number':
+                q = "number"
+            where_clause += f" C.{q} = ? AND"
+            args += (v,)
+        elif len(v) != 0:
+            where_clause += f" O.{q} = ? AND"
+            args += (v,)
+
+    if len(args) > 0:
+        where_clause = where_clause[:-3]
+    else:
+        where_clause = ""
+
+    print(where_clause)
+    print(args)
+    # c.execute('''SELECT O.id, C.department, C.number, T.name, T.email, O.time, O.location, O.day, O.capacity, O.duration 
+    #           FROM office_hour O NATURAL JOIN course C JOIN teaching_assistant T ON t.email = O.ta_email''')
+
+
+    qs = f'''SELECT O.id, C.department, C.number, T.name, T.email, O.time, O.location, O.day, O.capacity, O.duration 
+              FROM office_hour O NATURAL JOIN course C JOIN teaching_assistant T ON t.email = O.ta_email
+            {where_clause}'''
+    
+    c.execute(qs, args)
+
     office_hours = c.fetchall()
     conn.close()
     return jsonify(office_hours)

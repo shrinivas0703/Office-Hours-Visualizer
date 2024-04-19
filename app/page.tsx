@@ -6,6 +6,7 @@ import AddAssistantPopup from './addTAPopup';
 import AddOfficeHourPopup from './addOfficeHourPopup';
 import EditCoursePopup from "./editCoursePopup";
 import EditOfficeHourPopup from './editOfficeHourPopup';
+import FilterOfficeHoursPopup from './FilterOfficeHoursPopup';
 
 interface DeleteCoursePopupProps {
   onClose: () => void;
@@ -60,6 +61,9 @@ export default function Home() {
   const [currentOH, setCurrentOH] = useState<OfficeHour | null>(null);
   const [isEditOHPopupOpen, setIsEditOHPopupOpen] = useState(false);
 
+  const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false);
+
+
   useEffect(() => {
     fetchCourses();
     fetchTAs();
@@ -73,6 +77,7 @@ export default function Home() {
       onDeleteCourse();
       onClose();
     };
+
 
     return (
       <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
@@ -93,6 +98,16 @@ export default function Home() {
       </div>
     );
   };
+
+
+  const handleFilterClick = () => {
+    setIsFilterPopupOpen(true);
+  };
+
+  const handleCloseFilterPopup = () => {
+    setIsFilterPopupOpen(false);
+  };
+
 
   const DeleteOHPopup: React.FC<DeleteOHPopupProps> = ({ onClose, onDeleteOH }) => {
 
@@ -211,6 +226,30 @@ export default function Home() {
     setCurrentOH(oh);
     setIsDeleteOHPopupOpen(true);
   }
+
+
+  const handleApplyFilters = async (filters: any) => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/office_hours', {
+        params: filters // Append filters as query parameters
+      });
+      const mappedOHs = response.data.map((courseData:any) => ({
+        id: courseData[0],
+        department: courseData[1],
+        course_number: courseData[2],
+        name: courseData[3],
+        email: courseData[4],
+        time: courseData[5],
+        location: courseData[6],
+        day: courseData[7],
+        capacity: courseData[8],
+        duration: courseData[9],
+      }));
+      setOHs(mappedOHs);
+    } catch (error) {
+      console.error('Error fetching filtered office hours:', error);
+    }
+  };
 
   const handleEditCourse = async (editedCourse: Course) => {
     try {
@@ -353,6 +392,8 @@ export default function Home() {
     setIsDeleteOHPopupOpen(false);
   };
 
+  
+
   return (
     <div className="items-center min-h-screen ml-10">
       <h1 className="text-center text-2xl pt-4">CS 348 Project</h1>
@@ -413,7 +454,11 @@ export default function Home() {
         <button onClick={handleAddAssistantClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mb-8">
           Add a new teaching assistant
         </button>
-        <h1 className='font-bold'>Office Hours</h1>
+        <br></br>
+        <h1 className='font-bold inline'>Office Hours</h1> 
+        <button onClick={handleFilterClick} className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-full mb-8 ml-10">
+          Filter Office Hours
+        </button>
         <table className="table-auto mb-4">
           <thead>
             <tr>
@@ -487,6 +532,9 @@ export default function Home() {
         }
         {isDeleteOHPopupOpen && currentOH && 
           <DeleteOHPopup onClose={handleCloseDeleteOHPopup} onDeleteOH={() => handleDeleteOH(currentOH)} />
+        }
+        {isFilterPopupOpen && 
+          <FilterOfficeHoursPopup onClose={handleCloseFilterPopup} onApplyFilters={handleApplyFilters} />
         }
       </div>
     </div>
