@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 
+interface Course {
+  courseID: number;
+  department: string;
+  number: string;
+  professor: string;
+  num_students: number;
+}
+
 interface FilterOfficeHoursPopupProps {
   onClose: () => void;
   onApplyFilters: (filters: any) => void; 
+  courses: Course[];
 }
 
-const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose, onApplyFilters }) => {
+const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose, onApplyFilters, courses }) => {
     useEffect(() => {
         const handleEscapeKeyPress = (event: KeyboardEvent) => {
           if (event.key === 'Escape') {
@@ -21,8 +30,7 @@ const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose
       }, [onClose]);
 
   const [filters, setFilters] = useState<any>({
-    department: '',
-    course_number: '',
+    department_course: '',
     day: '',
     location: '',
     capacity: '',
@@ -33,7 +41,12 @@ const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose
     onClose();
   };
 
-  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = event.target;
+    setFilters({ ...filters, [name]: value });
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setFilters({ ...filters, [name]: value });
   };
@@ -47,26 +60,23 @@ const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose
         <h2 className="text-2xl mb-4">Filter Office Hours</h2>
         <div className="mb-4">
           <label className="block text-white text-sm font-bold mb-2">
-            Department
+            Department and Course Number
           </label>
-          <input type="text" name="department" value={filters.department} onChange={handleFilterChange} className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline" />
+          <select name="department_course" value={filters.department_course} onChange={handleSelectChange} className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline">
+            <option value="" disabled>Select Course</option>
+            {courses.map(course => (
+              <option key={course.courseID} value={`${course.department} ${course.number}`}>{course.department} {course.number}</option>
+            ))}
+          </select>
         </div>
         <div className="mb-4">
-          <label className="block text-white text-sm font-bold mb-2">
-            Course Number
-          </label>
-          <input type="text" name="course_number" value={filters.course_number} onChange={handleFilterChange} className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline" />
-        </div>
-        <div className="mb-4">
-        <label htmlFor="day" className="text-white">Day:</label>
+          <label htmlFor="day" className="text-white">Day:</label>
             <select
+              name="day"
               value={filters.day}
-              onChange={(e) => setFilters((prevState: any) => ({
-                ...prevState,
-                day: e.target.value
-              }))}
+              onChange={handleSelectChange}
               className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black">
-              <option value="" disabled className="text-gray-500">Select Day</option>
+              <option value="" disabled>Select Day</option>
               <option value="Monday">Monday</option>
               <option value="Tuesday">Tuesday</option>
               <option value="Wednesday">Wednesday</option>
@@ -80,13 +90,13 @@ const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose
           <label className="block text-white text-sm font-bold mb-2">
             Location
           </label>
-          <input type="text" name="location" value={filters.location} onChange={handleFilterChange} className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline" />
+          <input type="text" name="location" value={filters.location} onChange={handleInputChange} className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline" />
         </div>
         <div className="mb-4">
           <label className="block text-white text-sm font-bold mb-2">
-            Capacity
+            Minimum Capacity
           </label>
-          <input type="number" name="capacity" value={filters.capacity} onChange={handleFilterChange} className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline" />
+          <input type="number" name="capacity" value={filters.capacity} onChange={handleInputChange} className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline" />
         </div>
         <div className="flex justify-end mt-4">
           <button onClick={handleApplyFilters} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">

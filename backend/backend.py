@@ -82,10 +82,14 @@ def get_office_hours():
     where_clause = "WHERE"
     args = ()
     for q, v in request.args.items():
-        if (q == "department" or q == "course_number") and len(v) != 0:
-            if q == 'course_number':
-                q = "number"
-            where_clause += f" C.{q} = ? AND"
+        if (q == "department_course") and len(v) != 0:
+            q_arr = ["department", "number"]
+            v_arr = v.split()
+            where_clause += f" C.{q_arr[0]} = ? AND C.{q_arr[1]} = ? AND"
+            args += (v_arr[0],)
+            args += (v_arr[1],)
+        elif len(v) != 0 and q == "capacity":
+            where_clause += f" O.{q} >= ? AND"
             args += (v,)
         elif len(v) != 0:
             where_clause += f" O.{q} = ? AND"
@@ -96,11 +100,8 @@ def get_office_hours():
     else:
         where_clause = ""
 
-    # print(where_clause)
-    # print(args)
-    # c.execute('''SELECT O.id, C.department, C.number, T.name, T.email, O.time, O.location, O.day, O.capacity, O.duration 
-    #           FROM office_hour O NATURAL JOIN course C JOIN teaching_assistant T ON t.email = O.ta_email''')
-
+    #print(where_clause)
+    #print(args)
 
     qs = f'''SELECT O.id, C.department, C.number, T.name, T.email, O.time, O.location, O.day, O.capacity, O.duration 
               FROM office_hour O NATURAL JOIN course C JOIN teaching_assistant T ON t.email = O.ta_email
@@ -183,6 +184,7 @@ def post_new_OH():
 def edit_course():
     try:
         data = request.json
+
         course_id = data.get('courseID')
         department = data.get('department')
         course_number = data.get('number')

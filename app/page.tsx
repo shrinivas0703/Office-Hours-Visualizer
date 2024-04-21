@@ -54,6 +54,7 @@ export default function Home() {
   const [isAddOfficeHourPopupOpen, setIsAddOfficeHourPopupOpen] = useState(false);
   const [isDeleteCoursePopupOpen, setIsDeleteCoursePopupOpen] = useState(false);
   const [isDeleteOHPopupOpen, setIsDeleteOHPopupOpen] = useState(false);
+  const [displayMessage, setDisplayMessage] = useState(false);
 
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
@@ -226,12 +227,21 @@ export default function Home() {
     setCurrentOH(oh);
     setIsDeleteOHPopupOpen(true);
   }
+  
+  const handleResetFilters = async () => {
+    try {
+      await fetchOHs();
+      setDisplayMessage(false);
+    } catch (error) {
+      console.error('Error fetching office hours:', error);
+    }
+  };
 
 
   const handleApplyFilters = async (filters: any) => {
     try {
       const response = await axios.get('http://localhost:5000/api/office_hours', {
-        params: filters // Append filters as query parameters
+        params: filters
       });
       const mappedOHs = response.data.map((courseData:any) => ({
         id: courseData[0],
@@ -246,6 +256,7 @@ export default function Home() {
         duration: courseData[9],
       }));
       setOHs(mappedOHs);
+      setDisplayMessage(true);
     } catch (error) {
       console.error('Error fetching filtered office hours:', error);
     }
@@ -254,14 +265,15 @@ export default function Home() {
   const handleEditCourse = async (editedCourse: Course) => {
     try {
       // console.log(editedCourse);
-      const response = await axios.put(`http://localhost:5000/api/courses/office_hours`, editedCourse);
+      const response = await axios.put(`http://localhost:5000/api/courses`, editedCourse);
       
       if (response.status !== 200) {
         throw new Error('Failed to edit Office Hours');
       }
 
       fetchOHs();
-      setIsEditOHPopupOpen(false); // Close the edit popup
+      fetchCourses();
+      setIsEditPopupOpen(false); // Close the edit popup
     } catch (error) {
       console.error('Error editing Office Hour:', error);
     }
@@ -360,6 +372,13 @@ export default function Home() {
     }
   }
 
+  const totalDuration = ohs.reduce((sum, oh) => sum + oh.duration, 0);
+
+  const meanDuration = ohs.length === 0 ? 0 : totalDuration / ohs.length;
+
+  const totalCapacity = ohs.reduce((sum, oh) => sum + oh.capacity, 0);
+
+  const meanCapacity = ohs.length === 0 ? 0 : totalCapacity / ohs.length;
 
   const handleAddCourseClick = () => {
     setIsAddCoursePopupOpen(true);
@@ -398,7 +417,7 @@ export default function Home() {
     <div className="items-center min-h-screen ml-10">
       <h1 className="text-center text-2xl pt-4">CS 348 Project</h1>
       <div className="text-left justify-left">
-        <h1 className='font-bold'>Courses</h1>
+        <h1 className='font-bold text-xl'>Courses</h1>
         <table className="table-auto mb-4">
           <thead>
             <tr>
@@ -432,7 +451,7 @@ export default function Home() {
         <button onClick={handleAddCourseClick} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mb-8">
           Add a new course
         </button>
-        <h1 className='font-bold'>Teaching Assistants</h1>
+        <h1 className='font-bold text-xl'>Teaching Assistants</h1>
         <table className="table-auto mb-4">
           <thead>
             <tr>
@@ -455,10 +474,19 @@ export default function Home() {
           Add a new teaching assistant
         </button>
         <br></br>
-        <h1 className='font-bold inline'>Office Hours</h1> 
+        <h1 className='font-bold inline text-xl'>Office Hours</h1> 
         <button onClick={handleFilterClick} className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-full mb-8 ml-10">
           Filter Office Hours
         </button>
+        <button onClick={handleResetFilters} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-full mb-8 ml-6">
+          Reset Filters
+        </button>
+        {displayMessage && <div className='mb-4'>
+            
+            A total of {ohs.length} entries matched your filter. <br/>
+            The average duration of these office hours is {meanDuration} mins. <br/>
+            The average capacity of these office hours is {meanCapacity} people. <br/>
+        </div>}
         <table className="table-auto mb-4">
           <thead>
             <tr>
@@ -534,7 +562,7 @@ export default function Home() {
           <DeleteOHPopup onClose={handleCloseDeleteOHPopup} onDeleteOH={() => handleDeleteOH(currentOH)} />
         }
         {isFilterPopupOpen && 
-          <FilterOfficeHoursPopup onClose={handleCloseFilterPopup} onApplyFilters={handleApplyFilters} />
+          <FilterOfficeHoursPopup onClose={handleCloseFilterPopup} onApplyFilters={handleApplyFilters} courses={courses} />
         }
       </div>
     </div>
