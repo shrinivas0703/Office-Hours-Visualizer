@@ -484,8 +484,8 @@ export default function Home() {
         {displayMessage && <div className='mb-4'>
             
             A total of {ohs.length} entries matched your filter. <br/>
-            The average duration of these office hours is {meanDuration} mins. <br/>
-            The average capacity of these office hours is {meanCapacity} people. <br/>
+            Average Duration: {meanDuration} mins. <br/>
+            Average Capacity: {meanCapacity} people. <br/>
         </div>}
         <table className="table-auto mb-4">
           <thead>
