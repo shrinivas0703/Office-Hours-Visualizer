@@ -1,22 +1,57 @@
 import React, { useState, useEffect } from 'react';
 
+interface Course {
+  courseID: number;
+  department: string;
+  number: string;
+  professor: string;
+  num_students: number;
+}
+
+interface TeachingAssistant {
+  email: string;
+  name: string;
+  year: string;
+}
+
 interface PopupProps {
   onClose: () => void;
   onAddOfficeHour: (department: string, courseNumber: string, email: string, time: string, location: string, day: string, capacity: number, duration: number) => void;
+  courses: Course[];
+  ta_list: TeachingAssistant[]
 }
 
-const AddOfficeHourPopup: React.FC<PopupProps> = ({ onClose, onAddOfficeHour}) => {
+const AddOfficeHourPopup: React.FC<PopupProps> = ({ onClose, onAddOfficeHour, courses, ta_list}) => {
   const [department, setDepartment] = useState('');
   const [courseNumber, setCourseNumber] = useState('');
-  const [email, setEmail] = useState('');
+  const [taName, setTaName] = useState('');
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
   const [day, setDay] = useState('');
   const [capacity, setCapacity] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [tempString, setTempString] = useState("");
+
+  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+    setTempString(value);
+    const [department, courseNumber] = value.split(" ");
+    setDepartment(department);
+    setCourseNumber(courseNumber);
+  };
+
+  const handleSelectTAChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+    setTaName(value);
+  };
 
   const handleAddOfficeHour = () => {
-    onAddOfficeHour(department, courseNumber, email, time, location, day, capacity, duration);
+    if (!department || !courseNumber || !taName || !time || !location || !day || !capacity || !duration) {
+      alert("Please fill in all fields");
+      return;
+    }
+    
+    onAddOfficeHour(department, courseNumber, taName, time, location, day, capacity, duration);
     onClose();
   };
 
@@ -44,7 +79,7 @@ const AddOfficeHourPopup: React.FC<PopupProps> = ({ onClose, onAddOfficeHour}) =
           x
         </button>
         <h2 className="text-2xl mb-4">Add Office Hour</h2>
-        <input 
+        {/* <input 
             type="text"
             value={department}
             onChange={(e) => setDepartment(e.target.value)}
@@ -57,14 +92,40 @@ const AddOfficeHourPopup: React.FC<PopupProps> = ({ onClose, onAddOfficeHour}) =
           onChange={(e) => setCourseNumber(e.target.value)}
           placeholder="Enter Course Number"
           className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black"
-        />
-        <input
+        /> */}
+        <select 
+          name="course" 
+          value={tempString} 
+          onChange={handleSelectChange} 
+          className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline mb-2"
+        >
+          <option value="" disabled>Select Course</option>
+          {courses.map(course => (
+            <option key={course.courseID} value={`${course.department} ${course.number}`}>
+              {course.department} {course.number}
+            </option>
+          ))}
+        </select>
+        <select 
+          name="taName" 
+          value={taName} 
+          onChange={handleSelectTAChange} 
+          className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline mb-2"
+        >
+          <option value="" disabled>Select TA</option>
+          {ta_list.map(ta => (
+            <option key={ta.email} value={ta.name}>
+              {ta.name}
+            </option>
+          ))}
+        </select>
+        {/* <input
           type="text"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter TA Email"
           className="border border-gray-300 rounded-md px-3 py-2 mb-2 w-full text-black"
-        />
+        /> */}
         <input
           type="text"
           value={time}

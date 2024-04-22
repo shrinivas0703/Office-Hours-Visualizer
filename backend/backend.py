@@ -160,19 +160,21 @@ def post_new_OH():
         data = request.json
         department = data.get('department')
         course_number = data.get('courseNumber')
-        email = data.get('email')
+        name = data.get('ta_name')
         time = data.get('time')
         location = data.get('location')
         day = data.get('day')
         capacity = data.get('capacity')
         duration = data.get('duration')
+        print(data)
         conn = sqlite3.connect(DB_FILE)
         c = conn.cursor()
 
         # Using parameterized query to insert the new course into the database
         c.execute('''INSERT INTO office_hour (courseID, ta_email, time, duration, location, day, capacity)
-                  VALUES ((SELECT min(courseID) FROM course WHERE department = ? AND number = ?), ?, ?, ?, ?, ?, ?)''',
-                  (department, course_number, email, time, duration, location, day, capacity))
+                  VALUES ((SELECT min(courseID) FROM course WHERE department = ? AND number = ?),
+                  (SELECT email FROM teaching_assistant WHERE name = ?), ?, ?, ?, ?, ?)''',
+                  (department, course_number, name, time, duration, location, day, capacity))
         conn.commit()
         conn.close()
 

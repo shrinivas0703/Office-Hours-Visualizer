@@ -60,7 +60,7 @@ const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose
         <h2 className="text-2xl mb-4">Filter Office Hours</h2>
         <div className="mb-4">
           <label className="block text-white text-sm font-bold mb-2">
-            Department and Course Number
+            Course
           </label>
           <select name="department_course" value={filters.department_course} onChange={handleSelectChange} className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline">
             <option value="" disabled>Select Course</option>
@@ -70,7 +70,7 @@ const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose
           </select>
         </div>
         <div className="mb-4">
-          <label htmlFor="day" className="text-white">Day:</label>
+          <label htmlFor="day" className="block text-white text-sm font-bold mb-2">Day:</label>
             <select
               name="day"
               value={filters.day}

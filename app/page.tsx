@@ -315,12 +315,12 @@ export default function Home() {
     }
   };
 
-  const handleAddOfficeHour = async (department: string, courseNumber: string, email: string, time: string, location: string, day: string, capacity: number, duration: number) => {
+  const handleAddOfficeHour = async (department: string, courseNumber: string, ta_name: string, time: string, location: string, day: string, capacity: number, duration: number) => {
     try {
       const response = await axios.post('http://localhost:5000/api/office_hours', {
         department,
         courseNumber,
-        email,
+        ta_name,
         time,
         location,
         day,
@@ -539,7 +539,7 @@ export default function Home() {
         }
   
         {isAddOfficeHourPopupOpen && 
-          <AddOfficeHourPopup onClose={handleCloseAddOfficeHourPopup} onAddOfficeHour={handleAddOfficeHour}/>
+          <AddOfficeHourPopup onClose={handleCloseAddOfficeHourPopup} onAddOfficeHour={handleAddOfficeHour} courses={courses} ta_list={tas}/>
         }
         {isEditPopupOpen && currentCourse && 
         <EditCoursePopup 
