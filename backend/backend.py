@@ -46,11 +46,11 @@ def create_indexes():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
 
-    c.execute('''CREATE INDEX IF NOT EXISTS hash_ ON course(courseID)''')
-    c.execute('''CREATE INDEX IF NOT EXISTS hash_ ON course(department)''')
-    c.execute('''CREATE INDEX IF NOT EXISTS hash_ ON office_hour(day)''')
-    c.execute('''CREATE INDEX IF NOT EXISTS hash_ ON office_hour(location)''')
-    c.execute('''CREATE INDEX IF NOT EXISTS hash_ ON office_hour(capacity)''')
+    c.execute('''CREATE INDEX IF NOT EXISTS courseID_idx ON course(courseID)''')
+    c.execute('''CREATE INDEX IF NOT EXISTS department_idx ON course(department)''')
+    c.execute('''CREATE INDEX IF NOT EXISTS day_idx ON office_hour(day)''')
+    c.execute('''CREATE INDEX IF NOT EXISTS loc_idx ON office_hour(location)''')
+    c.execute('''CREATE INDEX IF NOT EXISTS cap_idx ON office_hour(capacity)''')
     
     conn.commit()
     conn.close()
