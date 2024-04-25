@@ -71,104 +71,136 @@ def test_insertions():
 def get_courses():
     # qs = request.args
     conn = sqlite3.connect(DB_FILE)
-
     c = conn.cursor()
-    c.execute('SELECT * FROM course')
-    courses = c.fetchall()
-    conn.close()
-    return jsonify(courses)
+    try:
+        c.execute("PRAGMA read_uncommitted = 1")
+        c.execute("BEGIN TRANSACTION")
+        c.execute('SELECT * FROM course')
+        courses = c.fetchall()
+        c.execute("COMMIT")
+        conn.close()
+        return jsonify(courses)
+    except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/teaching_assistants', methods=['GET'])
 def get_teaching_assistants():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute('SELECT * FROM teaching_assistant')
-    tas = c.fetchall()
-    conn.close()
-    return jsonify(tas)
+    try:
+        c.execute("PRAGMA read_uncommitted = 1")
+        c.execute("BEGIN TRANSACTION")
+        c.execute('SELECT * FROM teaching_assistant')
+        tas = c.fetchall()
+        c.execute("COMMIT")
+        conn.close()
+        return jsonify(tas)
+    except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/office_hours', methods=['GET'])
 def get_office_hours():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    
-    where_clause = "WHERE"
-    args = ()
-    for q, v in request.args.items():
-        if (q == "department_course") and len(v) != 0:
-            q_arr = ["department", "number"]
-            v_arr = v.split()
-            where_clause += f" C.{q_arr[0]} = ? AND C.{q_arr[1]} = ? AND"
-            args += (v_arr[0],)
-            args += (v_arr[1],)
-        elif len(v) != 0 and q == "capacity":
-            where_clause += f" O.{q} >= ? AND"
-            args += (v,)
-        elif len(v) != 0:
-            where_clause += f" O.{q} = ? AND"
-            args += (v,)
+    try:
+        c.execute("PRAGMA read_uncommitted = 1")
+        c.execute("BEGIN TRANSACTION")
+        
+        where_clause = "WHERE"
+        args = ()
+        for q, v in request.args.items():
+            if (q == "department_course") and len(v) != 0:
+                q_arr = ["department", "number"]
+                v_arr = v.split()
+                where_clause += f" C.{q_arr[0]} = ? AND C.{q_arr[1]} = ? AND"
+                args += (v_arr[0],)
+                args += (v_arr[1],)
+            elif len(v) != 0 and q == "capacity":
+                where_clause += f" O.{q} >= ? AND"
+                args += (v,)
+            elif len(v) != 0:
+                where_clause += f" O.{q} = ? AND"
+                args += (v,)
 
-    if len(args) > 0:
-        where_clause = where_clause[:-3]
-    else:
-        where_clause = ""
+        if len(args) > 0:
+            where_clause = where_clause[:-3]
+        else:
+            where_clause = ""
 
-    #print(where_clause)
-    #print(args)
+        #print(where_clause)
+        #print(args)
 
-    qs = f'''SELECT O.id, C.department, C.number, T.name, T.email, O.time, O.location, O.day, O.capacity, O.duration 
-              FROM office_hour O NATURAL JOIN course C JOIN teaching_assistant T ON t.email = O.ta_email
-            {where_clause}'''
-    
-    c.execute(qs, args)
+        qs = f'''SELECT O.id, C.department, C.number, T.name, T.email, O.time, O.location, O.day, O.capacity, O.duration 
+                FROM office_hour O NATURAL JOIN course C JOIN teaching_assistant T ON t.email = O.ta_email
+                {where_clause}'''
+        
+        c.execute(qs, args)
+        office_hours = c.fetchall()
+        c.execute("COMMIT")
+        conn.close()
+        return jsonify(office_hours)
+    except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
+        return jsonify({"error": str(e)}), 500
 
-    office_hours = c.fetchall()
-    conn.close()
-    return jsonify(office_hours)
 
 @app.route('/api/courses', methods=["POST"])
 def post_new_courses():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
     try:
         data = request.json
         department = data.get('courseDepartment')
         course_number = data.get('courseNumber')
         professor = data.get('professor')
         num_students = data.get('num_students')
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
-
+        c.execute("PRAGMA read_uncommitted = 1")
+        c.execute("BEGIN TRANSACTION")
         # Using parameterized query to insert the new course into the database
         c.execute("INSERT INTO course (department, number, professor, num_students) VALUES (?, ?, ?, ?)",
                   (department, course_number, professor, num_students))
+        c.execute("COMMIT") 
         conn.commit()
         conn.close()
-
         return jsonify({"message": "Course added successfully"}), 200
     except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/teaching_assistants', methods=["POST"])
 def post_new_TA():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
     try:
         data = request.json
         email = data.get('email')
         name = data.get('name')
         year = data.get('year')
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
-
+        c.execute("PRAGMA read_uncommitted = 1")
+        c.execute("BEGIN TRANSACTION")
         # Using parameterized query to insert the new course into the database
         c.execute("INSERT INTO teaching_assistant (email, name, year) VALUES (?, ?, ?)",
                   (email, name, year))
+        c.execute("COMMIT")
         conn.commit()
         conn.close()
 
         return jsonify({"message": "TA added successfully"}), 200
     except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/office_hours', methods=["POST"])
 def post_new_OH():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
     try:
         data = request.json
         department = data.get('department')
@@ -179,24 +211,27 @@ def post_new_OH():
         day = data.get('day')
         capacity = data.get('capacity')
         duration = data.get('duration')
-        print(data)
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
-
+        c.execute("PRAGMA read_uncommitted = 1")
+        c.execute("BEGIN TRANSACTION")
         # Using parameterized query to insert the new course into the database
         c.execute('''INSERT INTO office_hour (courseID, ta_email, time, duration, location, day, capacity)
                   VALUES ((SELECT min(courseID) FROM course WHERE department = ? AND number = ?),
                   (SELECT email FROM teaching_assistant WHERE name = ?), ?, ?, ?, ?, ?)''',
                   (department, course_number, name, time, duration, location, day, capacity))
+        c.execute("COMMIT")
         conn.commit()
         conn.close()
 
         return jsonify({"message": "Office Hour added successfully"}), 200
     except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/courses/', methods=["PUT"])
 def edit_course():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
     try:
         data = request.json
 
@@ -205,22 +240,25 @@ def edit_course():
         course_number = data.get('number')
         professor = data.get('professor')
         num_students = data.get('num_students')
-        
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
-
+        c.execute("PRAGMA read_uncommitted = 1")
+        c.execute("BEGIN TRANSACTION")
         # Using parameterized query to update the course information in the database
         c.execute("UPDATE course SET department=?, number=?, professor=?, num_students=? WHERE courseID=?",
                   (department, course_number, professor, num_students, course_id))
+        c.execute("COMMIT")
         conn.commit()
         conn.close()
 
         return jsonify({"message": "Course updated successfully"}), 200
     except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
         return jsonify({"error": str(e)}), 500
     
 @app.route('/api/office_hours/', methods=["PUT"])
 def edit_OH():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
     try:
         data = request.json
         id = data.get("id")
@@ -232,51 +270,60 @@ def edit_OH():
         day =  data.get('day')
         capacity = data.get('capacity')
         duration = data.get('duration')
-        
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
-
+        c.execute("PRAGMA read_uncommitted = 1")
+        c.execute("BEGIN TRANSACTION")
         # Using parameterized query to update the course information in the database
         c.execute('''UPDATE office_hour SET courseID = (SELECT min(courseID) FROM course WHERE department = ? AND number = ?),
                  ta_email = ?, time = ?, duration = ?, location = ?, day = ?, capacity = ?
                   WHERE id = ?''',
                   (department, course_number, email, time, duration, location, day, capacity, id))
+        c.execute("COMMIT")
         conn.commit()
         conn.close()
-
         return jsonify({"message": "Office Hour updated successfully"}), 200
     except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/courses/', methods=["DELETE"])
 def delete_course():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
     try:
         data = request.json
         course_id = data.get('courseID')
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
+        c.execute("PRAGMA read_uncommitted = 1")
+        c.execute("BEGIN TRANSACTION")
         c.execute("DELETE FROM course WHERE courseID=?",
                   (course_id, ))
+        c.execute("COMMIT")
         conn.commit()
         conn.close()
         return jsonify({"message": "Course deleted successfully"}), 200
     except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
         return jsonify({"error": str(e)}), 500
     
 @app.route('/api/office_hours/', methods=["DELETE"])
 def delete_office_hour():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
     try:
         data = request.json
-        print(data)
         id = data.get('id')
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
+        c.execute("PRAGMA read_uncommitted = 1")
+        c.execute("BEGIN TRANSACTION")
         c.execute("DELETE FROM office_hour WHERE id=?",
                   (id, ))
+        c.execute("COMMIT")
         conn.commit()
         conn.close()
         return jsonify({"message": "Office Hour deleted successfully"}), 200
     except Exception as e:
+        c.execute("ROLLBACK")
+        conn.close()
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
