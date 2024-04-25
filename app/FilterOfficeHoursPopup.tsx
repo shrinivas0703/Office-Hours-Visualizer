@@ -8,13 +8,27 @@ interface Course {
   num_students: number;
 }
 
+interface OfficeHour {
+  id: number;
+  department: string;
+  course_number: string;
+  name:string;
+  email: string;
+  time: string;
+  location: string;
+  day: string;
+  capacity: number;
+  duration: number;
+}
+
 interface FilterOfficeHoursPopupProps {
   onClose: () => void;
   onApplyFilters: (filters: any) => void; 
   courses: Course[];
+  office_hours: OfficeHour[];
 }
 
-const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose, onApplyFilters, courses }) => {
+const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose, onApplyFilters, courses, office_hours }) => {
     useEffect(() => {
         const handleEscapeKeyPress = (event: KeyboardEvent) => {
           if (event.key === 'Escape') {
@@ -70,7 +84,7 @@ const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose
           </select>
         </div>
         <div className="mb-4">
-          <label htmlFor="day" className="block text-white text-sm font-bold mb-2">Day:</label>
+          <label htmlFor="day" className="block text-white text-sm font-bold mb-2">Day</label>
             <select
               name="day"
               value={filters.day}
@@ -87,11 +101,20 @@ const FilterOfficeHoursPopup: React.FC<FilterOfficeHoursPopupProps> = ({ onClose
             </select>
         </div>
         <div className="mb-4">
+          <label htmlFor="location" className="block text-white text-sm font-bold mb-2">Location</label>
+          <select name="location" value={filters.location} onChange={handleSelectChange} className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline">
+              <option value="" disabled>Select Location</option>
+              {office_hours.map(office_hour => (
+                <option key={office_hour.id} value={office_hour.location}>{office_hour.location}</option>
+              ))}
+          </select>
+        </div>
+        {/* <div className="mb-4">
           <label className="block text-white text-sm font-bold mb-2">
             Location
           </label>
           <input type="text" name="location" value={filters.location} onChange={handleInputChange} className="border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline" />
-        </div>
+        </div> */}
         <div className="mb-4">
           <label className="block text-white text-sm font-bold mb-2">
             Minimum Capacity

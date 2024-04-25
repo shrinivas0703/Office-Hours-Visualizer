@@ -562,7 +562,8 @@ export default function Home() {
           <DeleteOHPopup onClose={handleCloseDeleteOHPopup} onDeleteOH={() => handleDeleteOH(currentOH)} />
         }
         {isFilterPopupOpen && 
-          <FilterOfficeHoursPopup onClose={handleCloseFilterPopup} onApplyFilters={handleApplyFilters} courses={courses} />
+          <FilterOfficeHoursPopup onClose={handleCloseFilterPopup} onApplyFilters={handleApplyFilters} courses={courses}
+          office_hours={ohs} />
         }
       </div>
     </div>
