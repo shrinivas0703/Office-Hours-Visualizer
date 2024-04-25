@@ -42,6 +42,19 @@ def create_tables():
     conn.commit()
     conn.close()
 
+def create_indexes():
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+
+    c.execute('''CREATE INDEX IF NOT EXISTS hash_ ON course(courseID)''')
+    c.execute('''CREATE INDEX IF NOT EXISTS hash_ ON course(department)''')
+    c.execute('''CREATE INDEX IF NOT EXISTS hash_ ON office_hour(day)''')
+    c.execute('''CREATE INDEX IF NOT EXISTS hash_ ON office_hour(location)''')
+    c.execute('''CREATE INDEX IF NOT EXISTS hash_ ON office_hour(capacity)''')
+    
+    conn.commit()
+    conn.close()
+
 def test_insertions():
     conn = sqlite3.connect(DB_FILE)
     c=conn.cursor()
@@ -268,6 +281,7 @@ def delete_office_hour():
 
 if __name__ == '__main__':
     create_tables()
+    create_indexes()
     #test_insertions()
     app.run(debug=True)
 
